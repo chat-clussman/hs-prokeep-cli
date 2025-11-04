@@ -71,9 +71,9 @@
     {{ read_time }} min read
 {% endmacro %}
 
-{% macro blog_post_small(post, blog_name) %}
+{% macro blog_post_small(post, blog_name, image_width) %}
     <a href="{{ post.absolute_url }}" class="block sm:flex items-center gap-12 rounded-lg no-underline hover:no-underline">
-        <div class="flex-shrink-0 sm:{% if small_posts|length == 2 %}w-[223px]{% else %}w-[175px]{% endif %}">
+        <div class="flex-shrink-0" style="width: 100%; max-width: {{ image_width }};">
             <div class="aspect-w-16 aspect-h-9 h-[209px] sm:h-[111px] w-full">
                 <img src="{{ post.featured_image or 'https://placehold.co/440x209' }}"
                      alt="{{ post.title }}"
@@ -104,7 +104,20 @@
             <h2 class="text-heading-l text-black mb-6 {% if accent_color %}border-l-4 {{ accent_color }} pl-4{% endif %}">{{ title }}</h2>
 
             <!-- Blog Posts Grid -->
-            <div class="grid grid-cols-1 {% if small_posts|length == 2 %}lg:grid-cols-blog-2-posts{% else %}lg:grid-cols-2{% endif %} gap-16">
+            {% set section_id = 'blog-section-' ~ title|replace(' ', '-')|lower|replace('&', 'and')|replace(':', '') %}
+            {% if small_posts|length == 2 %}
+            {% set grid_cols = '440px 1fr' %}
+            {% else %}
+            {% set grid_cols = 'repeat(2, 1fr)' %}
+            {% endif %}
+            <style>
+                @media (min-width: 1024px) {
+                    #{{ section_id }} {
+                        grid-template-columns: {{ grid_cols }} !important;
+                    }
+                }
+            </style>
+            <div id="{{ section_id }}" class="grid grid-cols-1 {% if small_posts|length == 2 %}lg:grid-cols-blog-2-posts{% else %}lg:grid-cols-2{% endif %} gap-16">
                 <!-- Featured Post (Left Column) -->
                 <div>
                     <a href="{{ featured_post.absolute_url }}" class="block rounded-lg overflow-hidden relative no-underline hover:no-underline">
@@ -146,8 +159,9 @@
 
                 <!-- Smaller Posts (Right Column) -->
                 <div class="space-y-6 sm:space-y-6 lg:space-y-6">
+                    {% set image_width = '223px' if small_posts|length == 2 else '222px' %}
                     {% for post in small_posts %}
-                        {{ blog_post_small(post, blog_name) }}
+                        {{ blog_post_small(post, blog_name, image_width) }}
                     {% endfor %}
 
                     <!-- See All Articles Link -->
@@ -470,6 +484,7 @@ t.blogs.change_management.posts
                                         <label class="flex items-center gap-2 p-2 hover:bg-gray-50 rounded cursor-pointer">
                                             <input type="checkbox" value="change-management" class="text-orange-500 rounded focus:ring-orange-500">
                                             <span class="text-sm">Change Management</span>
+
                                         </label>
                                     </div>
                                 </div>
